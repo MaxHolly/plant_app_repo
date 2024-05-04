@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>Registration Confirmation</h1>
+{% endblock %}
+
+{% block content %}
+  <p>{{ get_flashed_messages()[0] }}</p>
+  <p>Plant has been successfully registered.</p>
+  <p>What would you like to do next?</p>
+  <ul>
+    <li><a href="{{ url_for('plant.add') }}">Add Another Plant</a></li>
+    <li><a href="{{ url_for('plant.index') }}">Go to My Plants</a></li>
+  </ul>
+{% endblock %}

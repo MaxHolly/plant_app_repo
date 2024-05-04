@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit "{{ user_plant['common_name'] }}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="{{ url_for('plant.update', plant_id=user_plant['plant_id']) }}" method="post">
+  <label for="user_plant">Selected Plant:</label>
+  <input type="text" id="user_plant" name="user_plant" value="{{ user_plant['common_name'] }}" readonly>
+  
+  <label for="size">Size (cm):</label>
+  <input type="number" id="size" name="size" step="0.01" value="{{ request.form['size'] or user_plant['size'] }}" required>
+  
+  <label for="sun_exposure">Sun Exposure:</label>
+  <select id="sun_exposure" name="sun_exposure" required>
+    <option value="low" {% if user_plant['sun_exposure'] == 'low' %} selected {% endif %}>Low</option>
+    <option value="medium" {% if user_plant['sun_exposure'] == 'medium' %} selected {% endif %}>Medium</option>
+    <option value="high" {% if user_plant['sun_exposure'] == 'high' %} selected {% endif %}>High</option>
+  </select>
+
+  <label for="last_watered">Last Watered:</label>
+  <input type="date" id="last_watered" name="last_watered" value="{{ request.form['last_watered'] or user_plant['last_watered'] }}" required>
+  
+  <input type="hidden" id="plant_id" name="plant_id" value="{{ user_plant['plant_id'] }}">
+  <button type="submit">Update</button>
+</form>
+<hr>
+<form action="{{ url_for('plant.delete', plant_id=user_plant['plant_id']) }}" method = "post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+</form> 
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Plants{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('plant.add') }}">Add Plant</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if plants %}
+    {% for plant in plants %}
+      <article class="plant">
+        <header>
+          <div>
+            <h1>My {{plant['common_name'] }}</h1>
+            <div class="about">Botanical Name: {{ plant['botanical_name'] }}</div>
+          </div>
+        </header>
+        <header>
+            <div>
+                <h1>Personal Plant Information</h1>
+                <p class="personal_plant_information">
+                    Size (cm): {{ plant['size'] }}<br>
+                    Sun Exposure: {{ plant['sun_exposure'] }}<br>
+                    Last Watered: {{ plant['last_watered'] }}
+                </p>
+            </div>
+        </header>
+        <header>
+            <div>
+                {% if g.user %}
+                <a class="action" href="{{ url_for('plant.update', plant_id=plant['plant_id']) }}">Edit</a>
+                {% endif %}
+            </div>
+        </header>
+        <header>
+            <div>
+                <h2>General Plant Information</h2>
+                <p class="details">
+                    Plant Type: {{ plant['plant_type'] }}<br>
+                    Water Needs: {{ plant['water_needs'] }}<br>
+                    Climate Zones: {{ plant['climate_zones'] }}<br>
+                    Light Needs: {{ plant['light_needs'] }}<br>
+                    Soil Type: {{ plant['soil_type'] }}<br>
+                    Maintenance: {{ plant['maintenance'] }}<br>
+                    Flower Color: {{ plant['flower_color'] }}<br>
+                    Foliage Color: {{ plant['foliage_color'] }}<br>
+                    Perfume: {{ plant['perfume'] }}<br>
+                    Aromatic: {{ plant['aromatic'] }}<br>
+                    Edible: {{ plant['edible'] }}<br>
+                    Bore Water Tolerance: {{ plant['bore_water_tolerance'] }}<br>
+                    Frost Tolerance: {{ plant['frost_tolerance'] }}<br>
+                </p>
+            </div>
+        </header>
+      </article>
+      {% if not loop.last %}
+        <hr>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>No plants registered yet.</p>
+  {% endif %}
+{% endblock %}

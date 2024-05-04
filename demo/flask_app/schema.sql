@@ -1,7 +1,12 @@
+DROP TABLE IF EXISTS User;
+DROP TABLE IF EXISTS Plant;
+DROP TABLE IF EXISTS UserPlant;
+
 -- User Schema
 CREATE TABLE IF NOT EXISTS User (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
+    email TEXT NOT NULL,
     password TEXT NOT NULL
 );
 
@@ -30,10 +35,10 @@ CREATE TABLE IF NOT EXISTS Plant (
 
 -- UserPlant Schema (Many-to-Many Relationship)
 CREATE TABLE IF NOT EXISTS  UserPlant (
-    user_plant_id INTEGER PRIMARY KEY,
+    user_plant_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     plant_id INTEGER,
-    size TEXT,
+    size REAL,
     sun_exposure TEXT,
     last_watered DATETIME,
     registered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

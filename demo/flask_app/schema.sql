@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS User (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
-    password TEXT NOT NULL
+    avatar TEXT NOT NULL,
+    password TEXT NOT NULL,
+    user_description TEXT,
+    last_time_seen TIMESTAMP
 );
 
 -- Plant Schema

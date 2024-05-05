@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Edit Profile</h1>
+    <form method="post">
+        <label for="username">Username</label>
+        <input name="username" id="username"
+          value="{{ request.form['username'] or user['username'] }}" required>
+        <label for="user_description">About Me</label>
+        <textarea name="user_description" id="user_description">
+          {{ request.form["user_description"] or user["user_description"] }}</textarea>
+        <input type="submit" value="Submit">
+      </form>
+{% endblock %}
+

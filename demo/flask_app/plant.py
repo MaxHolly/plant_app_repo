@@ -19,7 +19,8 @@ def index():
                   up.* 
         FROM Plant p 
         JOIN UserPlant up ON p.plant_id = up.plant_id 
-        WHERE up.user_id = ?""",
+        WHERE up.user_id = ?
+        ORDER BY up.registered_at DESC""",
         (user_id,)
     ).fetchall()
     return render_template('plant/index.html', plants=plants)
@@ -130,16 +131,3 @@ def delete(plant_id):
     db.execute('DELETE FROM UserPlant WHERE user_plant_id = ?', (user_plant_id,))
     db.commit()
     return redirect(url_for('plant.index'))
-# @bp.route('/register/<int:plant_id>', methods=('POST',))
-# @login_required
-# def register(plant_id):
-#     """Register a plant to the user's account."""
-#     db = get_db()
-#     user_id = g.user['user_id']
-#     db.execute(
-#         "INSERT INTO UserPlant (user_id, plant_id) VALUES (?, ?)",
-#         (user_id, plant_id)
-#     )
-#     db.commit()
-#     flash('Plant registered!')
-#     return redirect(url_for('plant.index'))

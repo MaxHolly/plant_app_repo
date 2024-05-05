@@ -26,16 +26,15 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return "Hello, Tao, I'm building my plant app!"
     
     from . import db
     db.init_app(app)
 
     from . import auth
     app.register_blueprint(auth.bp)
+
+    from . import user
+    app.register_blueprint(user.bp)
 
     from . import plant
     app.register_blueprint(plant.bp)

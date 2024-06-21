@@ -1,20 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% if g.user %}
-    <table>
-        <tr valign="top">
-            <td><img src="{{ user.avatar }}"></td>
-            <td><h1>User: {{ user.username }}</h1></td>
-        </tr>
-    </table>
-    <td>
-        <h1>Email: {{ user.email }}</h1>
-        {% if user.user_description %}<p>About me: {{ user.user_description }}</p>{% endif %}
-        {% if user.last_time_seen %}<p>Last seen on: {{ user.last_time_seen }}</p>{% endif %}
-        {% if user.user_plant_count %}<p>Number of plants registered: {{ user.user_plant_count }}</p>{% endif %}
-    </td>
-    <p><a href="{{ url_for('user.edit_profile', username=g.user['username']) }}"> Edit your profile</a></p>
-    {% endif %}
+  {% if g.user %}
+  <div class="user-content">
+    <div class="user-header">
+      <img src="{{ user.avatar }}" class="user-avatar">
+      <h1>User: {{ user.username }}</h1>
+    </div>
+    <div class="user-details">
+        {% if user.email %}<li>Email: {{ user.email }}</li>{% endif %}
+        {% if user.user_plant_count %}<li>Number of plants registered: {{ user.user_plant_count }}</li>{% endif %}
+        {% if user.last_time_seen %}<li>Last seen on: {{ user.last_time_seen }}</li><br>{% endif %}
+    </div>
+    <div style="background-color: #f8f9fa; border-radius: 5px;">
+        {% if user.user_description %}
+        <h2 class="h5">About me: </h2><br>
+        <p>{{ user.user_description }}</p>
+        {% endif %}
+    </div>
+    <p><a href="{{ url_for('user.edit_profile', username=g.user['username']) }}" class="btn-dark-green">Edit your profile</a></p>
+    </div>
+  {% endif %}
 {% endblock %}
-

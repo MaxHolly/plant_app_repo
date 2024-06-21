@@ -1,41 +1,61 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>Add Plant</h1>
+  <h1 class="mb-4">Add Plant</h1>
 {% endblock %}
 
 {% block content %}
-  <form action="{{ url_for('plant.add') }}" method="post">
-    <label for="plant_name">Plant Name:</label>
-    <input type="text" id="plant_name" name="plant_name">
-    <button type="submit">Search</button>
+  <form action="{{ url_for('plant.add') }}" method="post" class="form mb-4">
+    <div class="form-group">
+      <label for="plant_name">Plant Name:</label>
+      <input type="text" class="form-control" id="plant_name" name="plant_name">
+    </div>
+    <button type="submit" class="btn btn-dark-green">Search</button>
   </form>
 
-  <h2>Search Results:</h2>
-  <ul>
+  <h2 class="mb-4">Search Results:</h2>
+  <ul class="list-group mb-4">
     {% for plant in plants %}
-      <li><a href="{{ url_for('plant.select', plant_id=plant['plant_id']) }}">{{ plant['common_name'] }}</a></li>
+      <li class="list-group-item"><a href="{{ url_for('plant.select', plant_id=plant['plant_id']) }}">{{ plant['common_name'] }} ({{ plant['botanical_name'] }})</a></li>
     {% endfor %}
   </ul>
 
-  <form action="{{ url_for('plant.save') }}" method="post">
-    <label for="selected_plant">Selected Plant:</label>
-    <input type="text" id="selected_plant" name="selected_plant" value="{{ selected_plant['common_name'] if selected_plant else '' }}" readonly>
+  <form action="{{ url_for('plant.save') }}" method="post" class="form">
+    <div class="form-group">
+      <label for="selected_plant">Selected Plant:</label>
+      <input type="text" class="form-control" id="selected_plant" name="selected_plant" value="{{ selected_plant['common_name'] if selected_plant else '' }}" readonly>
+    </div>
     
-    <label for="size">Size (cm):</label>
-    <input type="number" id="size" name="size" step="0.01" required>
+    <div class="form-group">
+      <label for="size">Size (cm):</label>
+      <input type="number" class="form-control" id="size" name="size" step="0.01" required>
+    </div>
 
-    <label for="sun_exposure">Sun Exposure:</label>
-    <select id="sun_exposure" name="sun_exposure" required>
-      <option value="low">Low</option>
-      <option value="medium">Medium</option>
-      <option value="high">High</option>
-    </select>
+    <div class="form-group">
+      <label for="sun_exposure">Sun Exposure:</label>
+      <select class="form-control" id="sun_exposure" name="sun_exposure" required>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+    </div>
 
-    <label for="last_watered">Last Watered:</label>
-    <input type="date" id="last_watered" name="last_watered" required>
+    <div class="form-group">
+      <label for="last_watered">Last Watered:</label>
+      <input type="date" class="form-control" id="last_watered" name="last_watered" required>
+    </div>
+
+    <div class="form-group">
+      <label for="watered_amount">Watered Amount (in litres):</label>
+      <input type="number" class="form-control" id="watered_amount" name="watered_amount" step="0.01">
+    </div>
+
+    <div class="form-group">
+      <label for="pot_diameter">Diameter of Pot (cm):</label>
+      <input type="number" class="form-control" id="pot_diameter" name="pot_diameter" step="0.01">
+    </div>
 
     <input type="hidden" id="selected_plant_id" name="selected_plant_id" value="{{ selected_plant['plant_id'] if selected_plant else '' }}">
-    <button type="submit">Save</button>
+    <button type="submit" class="btn btn-dark-green">Save</button>
   </form>
 {% endblock %}

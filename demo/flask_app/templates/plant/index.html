@@ -1,62 +1,75 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Plants{% endblock %}</h1>
+  <h1 class="mb-4">{% block title %}My Plants{% endblock %}</h1>
   {% if g.user %}
-    <a class="action" href="{{ url_for('plant.add') }}">Add Plant</a>
+    <a class="action btn btn-dark-green mb-4 w-100" href="{{ url_for('plant.add') }}">Add Plant</a>
   {% endif %}
 {% endblock %}
 
 {% block content %}
   {% if plants %}
     {% for plant in plants %}
-      <article class="plant">
+      <article class="plant mb-4">
+        <div class="row">
+          <div class="col-md-4">
+            <header class="mb-3">
+              <h1 class="h5">My {{ plant['common_name'] }}</h1>
+              <img src="{{ plant['image_location'] }}" alt="{{ plant['common_name'] }} Image" class="plant-image mb-2 img-fluid">
+              <div class="about">Botanical Name: {{ plant['botanical_name'] }}</div>
+            </header>
+          </div>
+          <div class="col-md-8 d-flex align-items-center">
+            <div class="w-100 p-3" style="background-color: #f8f9fa; border-radius: 5px;">
+              <h2 class="h6">Personal Plant Information</h2>
+              <p class="personal_plant_information">
+                Size (cm): {{ plant['size'] }}<br>
+                Sun Exposure: {{ plant['sun_exposure'] }}<br>
+                Pot Diameter (cm): {{ plant['pot_diameter'] }}<br>
+                Last Watered: {{ plant['last_watered'] }}<br>
+                Amount Watered (litres): {{ plant['watered_amount'] }}<br>
+                {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ plant.daily_water_consumption }}<br>{% endif %}
+                {% if plant.next_watering_date %}Next Watering Date: {{ plant.next_watering_date }}{% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12">
+            {% if g.user %}
+              <a class="action btn btn-dark-green w-100" href="{{ url_for('plant.update', plant_id=plant['plant_id']) }}">Edit</a>
+            {% endif %}
+          </div>
+        </div>
         <header>
           <div>
-            <h1>My {{plant['common_name'] }}</h1>
-            <div class="about">Botanical Name: {{ plant['botanical_name'] }}</div>
+            <h2 class="h6">General Plant Information</h2>
+            <table class="plant-table table table-striped">
+              <tr>
+                <td>
+                  Plant Type: {{ plant['plant_type'] }}<br>
+                  Water Needs: {{ plant['water_needs'] }}<br>
+                  Climate Zones: {{ plant['climate_zones'] }}<br>
+                  Light Needs: {{ plant['light_needs'] }}<br>
+                  Soil Type: {{ plant['soil_type'] }}<br>
+                  Maintenance: {{ plant['maintenance'] }}<br>
+                  Flower Color: {{ plant['flower_color'] }}
+                </td>
+                <td>
+                  Foliage Color: {{ plant['foliage_color'] }}<br>
+                  Perfume: {{ plant['perfume'] }}<br>
+                  Aromatic: {{ plant['aromatic'] }}<br>
+                  Edible: {{ plant['edible'] }}<br>
+                  Bore Water Tolerance: {{ plant['bore_water_tolerance'] }}<br>
+                  Frost Tolerance: {{ plant['frost_tolerance'] }}
+                </td>
+              </tr>
+            </table>
           </div>
-        </header>
-        <header>
-            <div>
-                <h1>Personal Plant Information</h1>
-                <p class="personal_plant_information">
-                    Size (cm): {{ plant['size'] }}<br>
-                    Sun Exposure: {{ plant['sun_exposure'] }}<br>
-                    Last Watered: {{ plant['last_watered'] }}
-                </p>
-            </div>
-        </header>
-        <header>
-            <div>
-                {% if g.user %}
-                <a class="action" href="{{ url_for('plant.update', plant_id=plant['plant_id']) }}">Edit</a>
-                {% endif %}
-            </div>
-        </header>
-        <header>
-            <div>
-                <h2>General Plant Information</h2>
-                <p class="details">
-                    Plant Type: {{ plant['plant_type'] }}<br>
-                    Water Needs: {{ plant['water_needs'] }}<br>
-                    Climate Zones: {{ plant['climate_zones'] }}<br>
-                    Light Needs: {{ plant['light_needs'] }}<br>
-                    Soil Type: {{ plant['soil_type'] }}<br>
-                    Maintenance: {{ plant['maintenance'] }}<br>
-                    Flower Color: {{ plant['flower_color'] }}<br>
-                    Foliage Color: {{ plant['foliage_color'] }}<br>
-                    Perfume: {{ plant['perfume'] }}<br>
-                    Aromatic: {{ plant['aromatic'] }}<br>
-                    Edible: {{ plant['edible'] }}<br>
-                    Bore Water Tolerance: {{ plant['bore_water_tolerance'] }}<br>
-                    Frost Tolerance: {{ plant['frost_tolerance'] }}<br>
-                </p>
-            </div>
         </header>
       </article>
       {% if not loop.last %}
-        <hr>
+        <hr class="mb-4">
       {% endif %}
     {% endfor %}
   {% else %}

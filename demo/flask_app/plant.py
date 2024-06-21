@@ -6,7 +6,32 @@ from werkzeug.exceptions import abort
 from flask_app.auth import login_required
 from flask_app.db import get_db
 
+from datetime import datetime, timedelta
+import math
+import pandas as pd
+
 bp = Blueprint('plant', __name__)
+
+def calculate_water_consumption(sun_exposure, pot_diameter, min_water, max_water):
+    if sun_exposure == 'low':
+        daily_consumption_mm = min_water / 365
+    elif sun_exposure == 'medium':
+        daily_consumption_mm = (min_water + max_water) / 2 / 365
+    else:  # high sun exposure
+        daily_consumption_mm = max_water / 365
+
+    # Area of the pot in square meters
+    pot_area = math.pi * (pot_diameter / 100 / 2) ** 2  # converting diameter to meters
+
+    # Daily water consumption in liters
+    daily_consumption_l = daily_consumption_mm * pot_area
+
+    return daily_consumption_l
+
+def calculate_next_watering(watered_date, watered_amount, daily_consumption):
+    days_to_next_watering = watered_amount / daily_consumption
+    next_watering_date = pd.to_datetime(watered_date) + timedelta(days=days_to_next_watering)
+    return next_watering_date
 
 @bp.route('/')
 @login_required
@@ -14,7 +39,7 @@ def index():
     """Show all plants registered by the current user."""
     db = get_db()
     user_id = g.user['user_id']
-    plants = db.execute(
+    plant_cursor = db.execute(
         """SELECT p.*,
                   up.* 
         FROM Plant p 
@@ -22,8 +47,40 @@ def index():
         WHERE up.user_id = ?
         ORDER BY up.registered_at DESC""",
         (user_id,)
-    ).fetchall()
-    return render_template('plant/index.html', plants=plants)
+    )
+    cols = [description[0] for description in plant_cursor.description]
+    plants= pd.DataFrame.from_records(data = plant_cursor.fetchall(), columns = cols)
+
+    if plants.shape[0] != 0:
+    # if result dataframe contains any rows then performa calculations
+    # calculate daily water consumption and next watering date for each plant in returned list
+        daily_water_consumption_plant = []
+        for index, row in plants.iterrows():
+            daily_water_consumption_plant.append(
+                calculate_water_consumption(sun_exposure=row['sun_exposure'],
+                                            pot_diameter=row['pot_diameter'],
+                                            min_water=row['min_water_consumption'],
+                                            max_water=row['max_water_consumption'])
+                                            )
+
+        plants['daily_water_consumption'] = daily_water_consumption_plant
+
+        next_watering_date = []
+        for index, row in plants.iterrows():
+            next_watering_date.append(
+                calculate_next_watering(watered_date=row['last_watered'],
+                                        watered_amount=row['watered_amount'],
+                                        daily_consumption=row['daily_water_consumption']
+                                        )
+                                        )
+        plants['next_watering_date'] = next_watering_date
+
+    else: # if no rows in result set, return empty list
+        pass
+    
+    # convert to list of named tuples so that jinja for loop can list plants in index.html
+    plants_list = list(plants.itertuples(index=False))
+    return render_template('plant/index.html', plants=plants_list)
 
 @bp.route('/add', methods=('GET', 'POST'))
 @login_required
@@ -63,11 +120,13 @@ def save():
         size = request.form['size']
         sun_exposure = request.form['sun_exposure']
         last_watered = request.form['last_watered']
+        pot_diameter = request.form['pot_diameter']
+        watered_amount = request.form['watered_amount']
 
         db = get_db()
         db.execute(
-            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered) VALUES (?, ?, ?, ?, ?)",
-            (user_id, plant_id, size, sun_exposure, last_watered)
+            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount)
         )
         db.commit()
         flash('Plant registered successfully!')
@@ -105,6 +164,8 @@ def update(plant_id):
         size = request.form['size']
         last_watered = request.form['last_watered']
         sun_exposure = request.form['sun_exposure']
+        pot_diameter = request.form['pot_diameter']
+        watered_amount = request.form['watered_amount']
         error = None
 
         if error is not None:
@@ -112,9 +173,9 @@ def update(plant_id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?'
+                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?'
                 ' WHERE user_plant_id = ?',
-                (size, last_watered, sun_exposure, user_plant_id)
+                (size, last_watered, sun_exposure, pot_diameter, watered_amount, user_plant_id)
             )
             db.commit()
             return redirect(url_for('plant.index'))

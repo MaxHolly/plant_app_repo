@@ -27,6 +27,11 @@
     </div>
 
     <div class="form-group mb-3">
+      <label for="plant_position">Location of your plantd:</label>
+      <input type="text" id="plant_position" name="plant_position" class="form-control" value="{{ request.form.get('plant_position', user_plant['plant_position']) }}">
+    </div>
+
+    <div class="form-group mb-3">
       <label for="last_watered">Last Watered:</label>
       <input type="date" id="last_watered" name="last_watered" class="form-control" value="{{ request.form.get('last_watered', user_plant['last_watered']) }}" required>
     </div>

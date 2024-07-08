@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS  UserPlant (
     pot_diameter REAL,
     watered_amount REAL,
     image_path TEXT,
+    plant_position TEXT,
     registered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(user_id),
     FOREIGN KEY (plant_id) REFERENCES Plant(plant_id)

@@ -158,11 +158,12 @@ def save():
         last_watered = request.form['last_watered']
         pot_diameter = request.form['pot_diameter']
         watered_amount = request.form['watered_amount']
+        plant_position = request.form['plant_position']
 
         db = get_db()
         db.execute(
-            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount)
+            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position)
         )
         db.commit()
         flash('Plant registered successfully!')
@@ -183,7 +184,8 @@ def get_added_plant(plant_id, check_owner=True):
             up.size,
             up.last_watered,
             up.pot_diameter,
-            up.watered_amount 
+            up.watered_amount,
+            up.plant_position 
         FROM User u JOIN UserPlant up ON u.user_id = up.user_id
         JOIN Plant p ON up.plant_id = p.plant_id
         WHERE up.plant_id = ?
@@ -213,6 +215,7 @@ def update(plant_id):
         sun_exposure = request.form['sun_exposure']
         pot_diameter = request.form['pot_diameter']
         watered_amount = request.form['watered_amount']
+        plant_position = request.form['plant_position']
         error = None
 
         # Handle file upload
@@ -236,9 +239,9 @@ def update(plant_id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?,  image_path = ?'
+                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?,  image_path = ?, plant_position = ?'
                 ' WHERE user_plant_id = ?',
-                (size, last_watered, sun_exposure, pot_diameter, watered_amount, relative_file_path, user_plant_id)
+                (size, last_watered, sun_exposure, pot_diameter, watered_amount, relative_file_path, plant_position, user_plant_id)
             )
             db.commit()
             return redirect(url_for('plant.index'))

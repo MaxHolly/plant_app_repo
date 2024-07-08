@@ -37,6 +37,7 @@
                 Size (cm): {{ plant['size'] }}<br>
                 Sun Exposure: {{ plant['sun_exposure'] }}<br>
                 Pot Diameter (cm): {{ plant['pot_diameter'] }}<br>
+                {% if plant.plant_position %} Plant Position: {{ plant['plant_position'] }}<br>{% endif %}
                 Last Watered: {{ plant['last_watered'] }}<br>
                 Amount Watered (litres): {{ plant['watered_amount'] }}<br>
                 {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ "%.4f"|format(plant.daily_water_consumption) }}<br>{% endif %}

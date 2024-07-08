@@ -1,38 +1,64 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Edit "{{ user_plant['common_name'] }}"{% endblock %}</h1>
+  <h1 class="mb-4">{% block title %}Edit "{{ user_plant['common_name'] }}"{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<form action="{{ url_for('plant.update', plant_id=user_plant['plant_id']) }}" method="post">
-  <label for="user_plant">Selected Plant:</label>
-  <input type="text" id="user_plant" name="user_plant" value="{{ user_plant['common_name'] }}" readonly>
-  
-  <label for="size">Size (cm):</label>
-  <input type="number" id="size" name="size" step="0.01" value="{{ request.form['size'] or user_plant['size'] }}" required>
-  
-  <label for="sun_exposure">Sun Exposure:</label>
-  <select id="sun_exposure" name="sun_exposure" required>
-    <option value="low" {% if user_plant['sun_exposure'] == 'low' %} selected {% endif %}>Low</option>
-    <option value="medium" {% if user_plant['sun_exposure'] == 'medium' %} selected {% endif %}>Medium</option>
-    <option value="high" {% if user_plant['sun_exposure'] == 'high' %} selected {% endif %}>High</option>
-  </select>
+<div class="container p-3" style="background-color: #f8f9fa; border-radius: 5px;">
+  <form action="{{ url_for('plant.update', plant_id=user_plant['plant_id']) }}" method="post" enctype="multipart/form-data">
+    <div class="form-group mb-3">
+      <label for="user_plant">Selected Plant:</label>
+      <input type="text" id="user_plant" name="user_plant" class="form-control" value="{{ user_plant['common_name'] }}" readonly>
+    </div>
+    
+    <div class="form-group mb-3">
+      <label for="size">Size (cm):</label>
+      <input type="number" id="size" name="size" class="form-control" step="0.01" value="{{ request.form.get('size', user_plant['size']) }}" required>
+    </div>
+    
+    <div class="form-group mb-3">
+      <label for="sun_exposure">Sun Exposure:</label>
+      <select id="sun_exposure" name="sun_exposure" class="form-control" required>
+        <option value="low" {% if request.form.get('sun_exposure', user_plant['sun_exposure']) == 'low' %} selected {% endif %}>Low</option>
+        <option value="medium" {% if request.form.get('sun_exposure', user_plant['sun_exposure']) == 'medium' %} selected {% endif %}>Medium</option>
+        <option value="high" {% if request.form.get('sun_exposure', user_plant['sun_exposure']) == 'high' %} selected {% endif %}>High</option>
+      </select>
+    </div>
 
-  <label for="last_watered">Last Watered:</label>
-  <input type="date" id="last_watered" name="last_watered" value="{{ request.form['last_watered'] or user_plant['last_watered'] }}" required>
-  
-  <label for="watered_amount">Watered Amount (in litres):</label>
-  <input type="number" id="watered_amount" name="watered_amount" value="{{ request.form['watered_amount'] or user_plant['watered_amount'] }}">
+    <div class="form-group mb-3">
+      <label for="last_watered">Last Watered:</label>
+      <input type="date" id="last_watered" name="last_watered" class="form-control" value="{{ request.form.get('last_watered', user_plant['last_watered']) }}" required>
+    </div>
+    
+    <div class="form-group mb-3">
+      <label for="watered_amount">Watered Amount (in litres):</label>
+      <input type="number" id="watered_amount" name="watered_amount" class="form-control" step="0.01" value="{{ request.form.get('watered_amount', user_plant['watered_amount']) }}">
+    </div>
 
-  <label for="pot_diameter">Diameter of Pot (cm):</label>
-  <input type="number" id="pot_diameter" name="pot_diameter"  value="{{ request.form['pot_diameter'] or user_plant['pot_diameter'] }}">
+    <div class="form-group mb-3">
+      <label for="pot_diameter">Diameter of Pot (cm):</label>
+      <input type="number" id="pot_diameter" name="pot_diameter" class="form-control" step="0.01" value="{{ request.form.get('pot_diameter', user_plant['pot_diameter']) }}">
+    </div>
 
-  <input type="hidden" id="plant_id" name="plant_id" value="{{ user_plant['plant_id'] }}">
-  <button type="submit">Update</button>
-</form>
-<hr>
-<form action="{{ url_for('plant.delete', plant_id=user_plant['plant_id']) }}" method = "post">
-    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
-</form> 
+    {% if user_plant['image_path'] %}
+      <div class="form-group mb-3">
+        <label>Current Image:</label>
+        <img src="{{ url_for('static', filename=user_plant['image_path']) }}" class="img-fluid">
+      </div>
+    {% endif %}
+
+    <div class="form-group mb-3">
+      <label for="image">Upload Your own Plant Image:</label>
+      <input type="file" id="image" name="image" class="form-control">
+    </div>
+
+    <input type="hidden" id="plant_id" name="plant_id" value="{{ user_plant['plant_id'] }}">
+    <button type="submit" class="btn btn-dark-green w-100 mb-3">Update</button>
+  </form>
+  <hr>
+  <form action="{{ url_for('plant.delete', plant_id=user_plant['plant_id']) }}" method="post">
+    <input class="btn btn-danger w-100" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+</div>
 {% endblock %}

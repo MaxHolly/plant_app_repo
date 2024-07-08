@@ -1,7 +1,10 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
 )
 from werkzeug.exceptions import abort
+from werkzeug.utils import secure_filename
+import os
+
 
 from flask_app.auth import login_required
 from flask_app.db import get_db
@@ -31,12 +34,19 @@ def calculate_water_consumption(sun_exposure, pot_diameter, min_water, max_water
 def calculate_next_watering(watered_date, watered_amount, daily_consumption):
     days_to_next_watering = watered_amount / daily_consumption
     next_watering_date = pd.to_datetime(watered_date) + timedelta(days=days_to_next_watering)
-    return next_watering_date
+    return next_watering_date.date()
 
-@bp.route('/')
-@login_required
-def index():
-    """Show all plants registered by the current user."""
+def check_if_watering_needed(next_watering_date):
+    today = datetime.today().date()
+    time_to_watering_plant = today - next_watering_date
+    # convert into int
+    time_to_watering_plant = int(time_to_watering_plant / timedelta(days=1))
+    if time_to_watering_plant >= 0:
+        return (time_to_watering_plant, True)
+    else:
+        return (time_to_watering_plant, False)
+
+def get_plant_and_notifications():
     db = get_db()
     user_id = g.user['user_id']
     plant_cursor = db.execute(
@@ -51,36 +61,62 @@ def index():
     cols = [description[0] for description in plant_cursor.description]
     plants= pd.DataFrame.from_records(data = plant_cursor.fetchall(), columns = cols)
 
+    notifications = []
+    daily_water_consumption_list = []
+    next_watering_date_list = []
+    time_to_watering_list = []
+    needs_watering_list = []
     if plants.shape[0] != 0:
-    # if result dataframe contains any rows then performa calculations
-    # calculate daily water consumption and next watering date for each plant in returned list
-        daily_water_consumption_plant = []
-        for index, row in plants.iterrows():
-            daily_water_consumption_plant.append(
-                calculate_water_consumption(sun_exposure=row['sun_exposure'],
-                                            pot_diameter=row['pot_diameter'],
-                                            min_water=row['min_water_consumption'],
-                                            max_water=row['max_water_consumption'])
-                                            )
 
-        plants['daily_water_consumption'] = daily_water_consumption_plant
+        for _,plant in plants.iterrows():
+            plant['daily_water_consumption'] = calculate_water_consumption(sun_exposure=plant['sun_exposure'],
+                                                                           pot_diameter=plant['pot_diameter'],
+                                                                           min_water=plant['min_water_consumption'],
+                                                                           max_water=plant['max_water_consumption'])
+            daily_water_consumption_list.append(plant['daily_water_consumption'])
 
-        next_watering_date = []
-        for index, row in plants.iterrows():
-            next_watering_date.append(
-                calculate_next_watering(watered_date=row['last_watered'],
-                                        watered_amount=row['watered_amount'],
-                                        daily_consumption=row['daily_water_consumption']
-                                        )
-                                        )
-        plants['next_watering_date'] = next_watering_date
+            plant['next_watering_date'] = calculate_next_watering(watered_date=plant['last_watered'],
+                                                                  watered_amount=plant['watered_amount'],
+                                                                  daily_consumption=plant['daily_water_consumption'])
+            next_watering_date_list.append(plant['next_watering_date'])
 
-    else: # if no rows in result set, return empty list
-        pass
+            if plant['next_watering_date']:
+                time_to_watering, needs_watering = check_if_watering_needed(plant['next_watering_date'])
+                plant['time_to_watering'] = time_to_watering,
+                plant['needs_watering'] = needs_watering
+                if needs_watering:
+                    overdue_days = time_to_watering if time_to_watering > 0 else 0
+                    notifications.append({
+                        'plant_name': plant['common_name'],
+                        'overdue_days': overdue_days
+                    })
+                time_to_watering_list.append(time_to_watering)
+                needs_watering_list.append(needs_watering)
+
+        plants['daily_water_consumption'] = daily_water_consumption_list
+        plants['next_watering_date'] = next_watering_date_list
+        plants['time_to_watering'] = time_to_watering_list
+        plants['needs_watering'] = needs_watering_list            
+        return plants, notifications
+
+    else:
+        return plants, notifications
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+
+@bp.route('/')
+@login_required
+def index():
+    """Show all plants registered by the current user."""
+    
+    plants, notifications = get_plant_and_notifications()
     
     # convert to list of named tuples so that jinja for loop can list plants in index.html
     plants_list = list(plants.itertuples(index=False))
-    return render_template('plant/index.html', plants=plants_list)
+    return render_template('plant/index.html', plants=plants_list, notifications=notifications, notification_count=len(notifications))
+
 
 @bp.route('/add', methods=('GET', 'POST'))
 @login_required
@@ -138,7 +174,16 @@ def save():
 def get_added_plant(plant_id, check_owner=True):
     user_id = g.user['user_id']
     added_plant = get_db().execute(
-        """SELECT up.user_plant_id, up.user_id, up.plant_id, p.common_name
+        """SELECT 
+            up.user_plant_id, 
+            up.user_id, 
+            up.plant_id, 
+            p.common_name, 
+            up.sun_exposure,
+            up.size,
+            up.last_watered,
+            up.pot_diameter,
+            up.watered_amount 
         FROM User u JOIN UserPlant up ON u.user_id = up.user_id
         JOIN Plant p ON up.plant_id = p.plant_id
         WHERE up.plant_id = ?
@@ -154,6 +199,8 @@ def get_added_plant(plant_id, check_owner=True):
 
     return added_plant
 
+
+
 @bp.route('/<int:plant_id>/update', methods=('GET', 'POST'))
 @login_required
 def update(plant_id):
@@ -168,18 +215,36 @@ def update(plant_id):
         watered_amount = request.form['watered_amount']
         error = None
 
+        # Handle file upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                relative_file_path = os.path.join('images', filename).replace('\\', '/')
+                file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename).replace('\\', '/')
+                try:
+                    file.save(file_path)
+                except Exception as e:
+                    error = f"File upload failed: {str(e)}"
+            else:
+                relative_file_path = user_plant['image_path'] if 'image_path' in user_plant else None
+        else:
+            relative_file_path = user_plant['image_path'] if 'image_path' in user_plant else None
+
         if error is not None:
             flash(error)
         else:
             db = get_db()
             db.execute(
-                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?'
+                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?,  image_path = ?'
                 ' WHERE user_plant_id = ?',
-                (size, last_watered, sun_exposure, pot_diameter, watered_amount, user_plant_id)
+                (size, last_watered, sun_exposure, pot_diameter, watered_amount, relative_file_path, user_plant_id)
             )
             db.commit()
             return redirect(url_for('plant.index'))
 
+    # Re-fetch the user_plant from the database to ensure it's up-to-date
+    user_plant = get_added_plant(plant_id)
     return render_template('plant/update.html', user_plant=user_plant)
 
 @bp.route('/<int:plant_id>/delete', methods=('POST',))

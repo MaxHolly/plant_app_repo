@@ -1,8 +1,9 @@
 import os
 
-from flask import Flask
+from flask import Flask, g
 from . import config
 
+from .plant import get_plant_and_notifications
 
 
 def create_app(test_config=None):
@@ -11,6 +12,9 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'plant_app_db.sqlite'),
+        UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/images'),
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'},
+        MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     )
 
     if test_config is None:
@@ -39,6 +43,13 @@ def create_app(test_config=None):
     from . import plant
     app.register_blueprint(plant.bp)
     app.add_url_rule('/', endpoint='index')
+
+    @app.context_processor
+    def inject_notifications():
+        if g.user:
+            plants,notifications = get_plant_and_notifications()
+            return dict(notifications=notifications, notification_count=len(notifications))
+        return dict(notifications=[], notification_count=0)
 
 
     return app

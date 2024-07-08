@@ -7,18 +7,18 @@
       <img src="{{ user.avatar }}" class="user-avatar">
       <h1>User: {{ user.username }}</h1>
     </div>
-    <div class="user-details">
-        {% if user.email %}<li>Email: {{ user.email }}</li>{% endif %}
-        {% if user.user_plant_count %}<li>Number of plants registered: {{ user.user_plant_count }}</li>{% endif %}
-        {% if user.last_time_seen %}<li>Last seen on: {{ user.last_time_seen }}</li><br>{% endif %}
-    </div>
     <div style="background-color: #f8f9fa; border-radius: 5px;">
         {% if user.user_description %}
         <h2 class="h5">About me: </h2><br>
         <p>{{ user.user_description }}</p>
         {% endif %}
     </div>
-    <p><a href="{{ url_for('user.edit_profile', username=g.user['username']) }}" class="btn-dark-green">Edit your profile</a></p>
+    <div class="user-details">
+        {% if user.email %}<li>Email: {{ user.email }}</li>{% endif %}
+        {% if user.user_plant_count %}<li>Number of plants registered: {{ user.user_plant_count }}</li>{% endif %}
+        {% if user.last_time_seen %}<li>Last seen on: {{ user.last_time_seen }}</li><br>{% endif %}
+    </div>
+    <p><a href="{{ url_for('user.edit_profile', username=g.user['username']) }}" class="action btn btn-dark-green w-100">Edit your profile</a></p>
     </div>
   {% endif %}
 {% endblock %}

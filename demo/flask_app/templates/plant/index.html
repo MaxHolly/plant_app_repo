@@ -5,6 +5,13 @@
   {% if g.user %}
     <a class="action btn btn-dark-green mb-4 w-100" href="{{ url_for('plant.add') }}">Add Plant</a>
   {% endif %}
+  {% if notifications %}
+    <div class="alert alert-warning" role="alert">
+      {% for notification in notifications %}
+        <p>{{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.</p>
+      {% endfor %}
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -15,7 +22,11 @@
           <div class="col-md-4">
             <header class="mb-3">
               <h1 class="h5">My {{ plant['common_name'] }}</h1>
-              <img src="{{ plant['image_location'] }}" alt="{{ plant['common_name'] }} Image" class="plant-image mb-2 img-fluid">
+              {% if plant['image_path'] %}
+                <img src="{{ url_for('static', filename=plant['image_path']) }}" alt="{{ plant['common_name'] }} Image" class="plant-image mb-2 img-fluid">
+              {% else %}
+                <img src="{{ plant['image_location'] }}" alt="{{ plant['common_name'] }} Image" class="plant-image mb-2 img-fluid">
+              {% endif %}
               <div class="about">Botanical Name: {{ plant['botanical_name'] }}</div>
             </header>
           </div>
@@ -28,8 +39,23 @@
                 Pot Diameter (cm): {{ plant['pot_diameter'] }}<br>
                 Last Watered: {{ plant['last_watered'] }}<br>
                 Amount Watered (litres): {{ plant['watered_amount'] }}<br>
-                {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ plant.daily_water_consumption }}<br>{% endif %}
+                {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ "%.4f"|format(plant.daily_water_consumption) }}<br>{% endif %}
                 {% if plant.next_watering_date %}Next Watering Date: {{ plant.next_watering_date }}{% endif %}
+
+                {% if plant['needs_watering'] %}
+                  <div class="alert alert-warning mt-2" role="alert">
+                    This plant needs to be watered!
+                    {% if plant['time_to_watering'] > 0 %}
+                      Overdue by {{ plant['time_to_watering'] }} days.
+                    {% else %}
+                      Today.
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <div class="alert alert-info mt-2" role="alert">
+                    Water again in {{ -plant['time_to_watering'] }} days.
+                  </div>
+                {% endif %}
               </p>
             </div>
           </div>

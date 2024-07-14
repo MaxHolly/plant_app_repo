@@ -14,7 +14,7 @@
     
     <div class="form-group mb-3">
       <label for="size">Size (cm):</label>
-      <input type="number" id="size" name="size" class="form-control" step="0.01" value="{{ request.form.get('size', user_plant['size']) }}" required>
+      <input type="number" id="size" name="size" class="form-control" step="0.01" value="{{ (request.form.get('size', user_plant['size']))|e }}" required>
     </div>
     
     <div class="form-group mb-3">
@@ -28,22 +28,22 @@
 
     <div class="form-group mb-3">
       <label for="plant_position">Location of your plantd:</label>
-      <input type="text" id="plant_position" name="plant_position" class="form-control" value="{{ request.form.get('plant_position', user_plant['plant_position']) }}">
+      <input type="text" id="plant_position" name="plant_position" class="form-control" value="{{ (request.form.get('plant_position', user_plant['plant_position']))|e }}">
     </div>
 
     <div class="form-group mb-3">
       <label for="last_watered">Last Watered:</label>
-      <input type="date" id="last_watered" name="last_watered" class="form-control" value="{{ request.form.get('last_watered', user_plant['last_watered']) }}" required>
+      <input type="date" id="last_watered" name="last_watered" class="form-control" value="{{ (request.form.get('last_watered', user_plant['last_watered']))|e }}" required>
     </div>
     
     <div class="form-group mb-3">
       <label for="watered_amount">Watered Amount (in litres):</label>
-      <input type="number" id="watered_amount" name="watered_amount" class="form-control" step="0.01" value="{{ request.form.get('watered_amount', user_plant['watered_amount']) }}">
+      <input type="number" id="watered_amount" name="watered_amount" class="form-control" step="0.01" value="{{ (request.form.get('watered_amount', user_plant['watered_amount']))|e }}">
     </div>
 
     <div class="form-group mb-3">
       <label for="pot_diameter">Diameter of Pot (cm):</label>
-      <input type="number" id="pot_diameter" name="pot_diameter" class="form-control" step="0.01" value="{{ request.form.get('pot_diameter', user_plant['pot_diameter']) }}">
+      <input type="number" id="pot_diameter" name="pot_diameter" class="form-control" step="0.01" value="{{ (request.form.get('pot_diameter', user_plant['pot_diameter']))|e }}">
     </div>
 
     {% if user_plant['image_path'] %}

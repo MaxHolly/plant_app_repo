@@ -49,6 +49,8 @@ def check_if_watering_needed(next_watering_date):
 def get_plant_and_notifications():
     db = get_db()
     user_id = g.user['user_id']
+
+
     plant_cursor = db.execute(
         """SELECT p.*,
                   up.* 
@@ -112,10 +114,30 @@ def index():
     """Show all plants registered by the current user."""
     
     plants, notifications = get_plant_and_notifications()
+
+    # add pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['PLANTS_PER_PAGE']
     
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_plants = plants.iloc[start:end]
+
+
     # convert to list of named tuples so that jinja for loop can list plants in index.html
-    plants_list = list(plants.itertuples(index=False))
-    return render_template('plant/index.html', plants=plants_list, notifications=notifications, notification_count=len(notifications))
+    plants_list = list(paginated_plants.itertuples(index=False))
+
+    total_plants = len(plants)
+    total_pages = (total_plants + per_page - 1) // per_page
+
+    return render_template(
+        'plant/index.html', 
+        plants=plants_list, 
+        notifications=notifications, 
+        notification_count=len(notifications), 
+        page=page, 
+        total_pages=total_pages
+    )
 
 
 @bp.route('/add', methods=('GET', 'POST'))

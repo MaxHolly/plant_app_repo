@@ -2,6 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
+import bleach
 
 from flask_app.auth import login_required
 from flask_app.db import get_db
@@ -41,7 +42,7 @@ def edit_profile(username):
 
     if request.method == 'POST':
         username = request.form['username']
-        user_description = request.form['user_description']
+        user_description = bleach.clean(request.form['user_description'], strip=True)
         error = None
 
         if error is not None:

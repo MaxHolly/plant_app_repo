@@ -7,12 +7,12 @@
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" name="username" id="username" 
-          value="{{ request.form['username'] or user['username'] }}" required>
+          value="{{ (request.form['username'] or user['username'])|e }}" required>
       </div>
       <div class="form-group">
         <label for="user_description">About Me</label>
         <textarea class="form-control" name="user_description" id="user_description" rows="5">
-          {{ request.form["user_description"] or user["user_description"] }}</textarea>
+          {{ (request.form["user_description"] or user["user_description"])|e }}</textarea>
       </div>
       <button type="submit" class="btn btn-dark-green">Submit</button>
     </form>

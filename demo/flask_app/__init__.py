@@ -11,6 +11,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
+        PLANTS_PER_PAGE = 3,
         DATABASE=os.path.join(app.instance_path, 'plant_app_db.sqlite'),
         UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/images'),
         ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'},

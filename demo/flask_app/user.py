@@ -9,16 +9,6 @@ from flask_app.db import get_db
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
-@bp.route('/config')
-def get_config():
-    return {
-        # 'SECRET_KEY': current_app.config['SECRET_KEY'],
-        'PLANTS_PER_PAGE': current_app.config['PLANTS_PER_PAGE'],
-        'DATABASE': current_app.config['DATABASE'],
-        'UPLOAD_FOLDER': current_app.config['UPLOAD_FOLDER'],
-        'ALLOWED_EXTENSIONS': current_app.config['ALLOWED_EXTENSIONS'],
-        'MAX_CONTENT_LENGTH': current_app.config['MAX_CONTENT_LENGTH']
-    }
 
 
 def get_user(username):

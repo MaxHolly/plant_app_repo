@@ -17,11 +17,15 @@
 {% block content %}
   {% if plants %}
     {% for plant in plants %}
-      <article class="plant mb-4">
+      <article id="plant-{{ plant['user_plant_id'] }}" class="plant mb-4">
         <div class="row">
           <div class="col-md-4">
             <header class="mb-3">
+              {% if plant.plant_nickname %}
+              <h1 class="h5">My {{ plant['plant_nickname'] }} ({{ plant['common_name'] }})</h1>
+              {% else %}
               <h1 class="h5">My {{ plant['common_name'] }}</h1>
+              {% endif %}
               {% if plant['image_path'] %}
                 <img src="{{ url_for('static', filename=plant['image_path']) }}" alt="{{ plant['common_name'] }} Image" class="plant-image mb-2 img-fluid">
               {% else %}
@@ -64,7 +68,7 @@
         <div class="row mt-3">
           <div class="col-12">
             {% if g.user %}
-              <a class="action btn btn-dark-green w-100" href="{{ url_for('plant.update', plant_id=plant['plant_id']) }}">Edit</a>
+              <a class="action btn btn-dark-green w-100" href="{{ url_for('plant.update', user_plant_id=plant['user_plant_id']) }}">Edit</a>
             {% endif %}
           </div>
         </div>

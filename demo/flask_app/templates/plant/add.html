@@ -60,6 +60,11 @@
       <input type="text" class="form-control" id="plant_position" name="plant_position">
     </div>
 
+    <div class="form-group">
+      <label for="plant_nickname">Nickname for your cutie plant:</label>
+      <input type="text" class="form-control" id="plant_nickname" name="plant_nickname">
+    </div>
+
     <input type="hidden" id="selected_plant_id" name="selected_plant_id" value="{{ selected_plant['plant_id'] if selected_plant else '' }}">
     <button type="submit" class="btn btn-dark-green">Save</button>
   </form>

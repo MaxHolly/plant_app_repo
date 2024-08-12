@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
 )
 from werkzeug.exceptions import abort
 import bleach
@@ -8,6 +8,18 @@ from flask_app.auth import login_required
 from flask_app.db import get_db
 
 bp = Blueprint('user', __name__, url_prefix='/user')
+
+@bp.route('/config')
+def get_config():
+    return {
+        # 'SECRET_KEY': current_app.config['SECRET_KEY'],
+        'PLANTS_PER_PAGE': current_app.config['PLANTS_PER_PAGE'],
+        'DATABASE': current_app.config['DATABASE'],
+        'UPLOAD_FOLDER': current_app.config['UPLOAD_FOLDER'],
+        'ALLOWED_EXTENSIONS': current_app.config['ALLOWED_EXTENSIONS'],
+        'MAX_CONTENT_LENGTH': current_app.config['MAX_CONTENT_LENGTH']
+    }
+
 
 def get_user(username):
     user_id = g.user['user_id']

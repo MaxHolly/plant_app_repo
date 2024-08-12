@@ -1,12 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1 class="mb-4">{% block title %}Edit "{{ user_plant['common_name'] }}"{% endblock %}</h1>
+  {% if user_plant['plant_nickname'] %}
+    <h1 class="mb-4">Update "{{ user_plant['plant_nickname'] }}" ({{ user_plant['common_name'] }})</h1>
+  {% else %}
+    <h1 class="mb-4">Update {{ user_plant['common_name'] }}</h1>
+  {% endif %}
 {% endblock %}
+
 
 {% block content %}
 <div class="container p-3" style="background-color: #f8f9fa; border-radius: 5px;">
-  <form action="{{ url_for('plant.update', plant_id=user_plant['plant_id']) }}" method="post" enctype="multipart/form-data">
+  <form action="{{ url_for('plant.update', user_plant_id=user_plant['user_plant_id']) }}" method="post" enctype="multipart/form-data">
     <div class="form-group mb-3">
       <label for="user_plant">Selected Plant:</label>
       <input type="text" id="user_plant" name="user_plant" class="form-control" value="{{ user_plant['common_name'] }}" readonly>
@@ -27,8 +32,13 @@
     </div>
 
     <div class="form-group mb-3">
-      <label for="plant_position">Location of your plantd:</label>
+      <label for="plant_position">Location of your plant:</label>
       <input type="text" id="plant_position" name="plant_position" class="form-control" value="{{ (request.form.get('plant_position', user_plant['plant_position']))|e }}">
+    </div>
+
+    <div class="form-group mb-3">
+      <label for="plant_nickname">Nickname of your cutie plant:</label>
+      <input type="text" id="plant_nickname" name="plant_nickname" class="form-control" value="{{ (request.form.get('plant_nickname', user_plant['plant_nickname']))|e }}">
     </div>
 
     <div class="form-group mb-3">
@@ -58,11 +68,11 @@
       <input type="file" id="image" name="image" class="form-control">
     </div>
 
-    <input type="hidden" id="plant_id" name="plant_id" value="{{ user_plant['plant_id'] }}">
+    <input type="hidden" id="user_plant_id" name="user_plant_id" value="{{ user_plant['user_plant_id'] }}">
     <button type="submit" class="btn btn-dark-green w-100 mb-3">Update</button>
   </form>
   <hr>
-  <form action="{{ url_for('plant.delete', plant_id=user_plant['plant_id']) }}" method="post">
+  <form action="{{ url_for('plant.delete', user_plant_id=user_plant['user_plant_id']) }}" method="post">
     <input class="btn btn-danger w-100" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
   </form>
 </div>

@@ -89,6 +89,7 @@ def get_plant_and_notifications():
                 if needs_watering:
                     overdue_days = time_to_watering if time_to_watering > 0 else 0
                     notifications.append({
+                        'user_plant_id': plant['user_plant_id'],
                         'plant_name': plant['common_name'],
                         'overdue_days': overdue_days
                     })
@@ -181,20 +182,22 @@ def save():
         pot_diameter = request.form['pot_diameter']
         watered_amount = request.form['watered_amount']
         plant_position = request.form['plant_position']
+        plant_nickname = request.form['plant_nickname']
 
         db = get_db()
-        db.execute(
-            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position)
+        cursor = db.execute(
+            "INSERT INTO UserPlant (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position, plant_nickname) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (user_id, plant_id, size, sun_exposure, last_watered, pot_diameter, watered_amount, plant_position, plant_nickname)
         )
         db.commit()
+        user_plant_id = cursor.lastrowid  # Get the last inserted row ID
         flash('Plant registered successfully!')
 
-        return render_template('plant/save.html')
+        return render_template('plant/save.html', user_plant_id = user_plant_id)
     
     return redirect(url_for('plant.add'))
 
-def get_added_plant(plant_id, check_owner=True):
+def get_added_plant(user_plant_id, check_owner=True):
     user_id = g.user['user_id']
     added_plant = get_db().execute(
         """SELECT 
@@ -207,16 +210,17 @@ def get_added_plant(plant_id, check_owner=True):
             up.last_watered,
             up.pot_diameter,
             up.watered_amount,
-            up.plant_position 
+            up.plant_position, 
+            up.plant_nickname
         FROM User u JOIN UserPlant up ON u.user_id = up.user_id
         JOIN Plant p ON up.plant_id = p.plant_id
-        WHERE up.plant_id = ?
+        WHERE up.user_plant_id = ?
         AND u.user_id = ?""",
-        (plant_id, user_id)
+        (user_plant_id, user_id)
     ).fetchone()
 
     if added_plant is None:
-        abort(404, f"Plant with id {added_plant['plant_id']} doesn't exist for user {g.user['user_id']}.")
+        abort(404, f"Plant with id {user_plant_id} doesn't exist for user {g.user['user_id']}.")
 
     if check_owner and added_plant['user_id'] != g.user['user_id']:
         abort(403)
@@ -225,19 +229,19 @@ def get_added_plant(plant_id, check_owner=True):
 
 
 
-@bp.route('/<int:plant_id>/update', methods=('GET', 'POST'))
+@bp.route('/<int:user_plant_id>/update', methods=('GET', 'POST'))
 @login_required
-def update(plant_id):
-    user_plant = get_added_plant(plant_id)
+def update(user_plant_id):
+    user_plant = get_added_plant(user_plant_id)
 
     if request.method == 'POST':
-        user_plant_id = user_plant['user_plant_id']
         size = request.form['size']
         last_watered = request.form['last_watered']
         sun_exposure = request.form['sun_exposure']
         pot_diameter = request.form['pot_diameter']
         watered_amount = request.form['watered_amount']
         plant_position = request.form['plant_position']
+        plant_nickname = request.form['plant_nickname']
         error = None
 
         # Handle file upload
@@ -261,21 +265,22 @@ def update(plant_id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?,  image_path = ?, plant_position = ?'
+                'UPDATE UserPlant SET size = ?, last_watered = ?, sun_exposure = ?, pot_diameter = ?, watered_amount = ?,  image_path = ?, plant_position = ?, plant_nickname = ?'
                 ' WHERE user_plant_id = ?',
-                (size, last_watered, sun_exposure, pot_diameter, watered_amount, relative_file_path, plant_position, user_plant_id)
+                (size, last_watered, sun_exposure, pot_diameter, watered_amount, relative_file_path, plant_position, plant_nickname, user_plant_id)
             )
             db.commit()
             return redirect(url_for('plant.index'))
 
     # Re-fetch the user_plant from the database to ensure it's up-to-date
-    user_plant = get_added_plant(plant_id)
+    user_plant = get_added_plant(user_plant_id)
     return render_template('plant/update.html', user_plant=user_plant)
 
-@bp.route('/<int:plant_id>/delete', methods=('POST',))
+
+@bp.route('/<int:user_plant_id>/delete', methods=('POST',))
 @login_required
 def delete(plant_id):
-    user_plant = get_added_plant(plant_id)
+    user_plant = get_added_plant(user_plant_id)
     user_plant_id = user_plant['user_plant_id']
     
     db = get_db()

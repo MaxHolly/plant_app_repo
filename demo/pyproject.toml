@@ -20,6 +20,8 @@ flask-login = "^0.6.3"
 imageio = "^2.34.1"
 bleach = "^6.1.0"
 alembic = "^1.13.2"
+sqlalchemy = "^2.0.31"
+flask-jwt-extended = "^4.6.0"
 
 
 [build-system]

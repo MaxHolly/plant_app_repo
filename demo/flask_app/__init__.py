@@ -9,20 +9,13 @@ from .plant import get_plant_and_notifications
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        PLANTS_PER_PAGE = 3,
-        DATABASE=os.path.join(app.instance_path, 'plant_app_db.sqlite'),
-        UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/images'),
-        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'},
-        MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    )
 
     if test_config is None:
-        # load the instance config, if it exists, when not testing
+        # Load the instance config, if it exists, when not testing
+        app.config.from_object('flask_app.config.Config')
         app.config.from_pyfile('config.py', silent=True)
     else:
-        # load the test config if passed in
+        # Load the test config if passed in
         app.config.from_mapping(test_config)
 
     # ensure the instance folder exists
@@ -48,8 +41,9 @@ def create_app(test_config=None):
     @app.context_processor
     def inject_notifications():
         if g.user:
-            plants,notifications = get_plant_and_notifications()
-            return dict(notifications=notifications, notification_count=len(notifications))
+            plants, notifications = get_plant_and_notifications()
+            per_page = app.config['PLANTS_PER_PAGE']
+            return dict(notifications=notifications, notification_count=len(notifications), per_page=per_page)
         return dict(notifications=[], notification_count=0)
 
 

@@ -7,30 +7,16 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-      const notifications = document.querySelectorAll('.dropdown-item');
-      notifications.forEach(notification => {
-        notification.addEventListener('click', (e) => {
-          e.preventDefault();
-          const page = notification.getAttribute('data-page');
-          const plantId = notification.getAttribute('href').split('#')[1];
-          const url = new URL(window.location.origin + window.location.pathname);
-          url.searchParams.set('page', page);
-          url.hash = plantId;
-          window.location = url.toString();
-        });
-      });
-
-      // Scroll to the plant if hash is present in the URL
-      const hash = window.location.hash;
+    document.addEventListener('DOMContentLoaded', function() {
+      var hash = window.location.hash;
       if (hash) {
-        const plantElement = document.querySelector(hash);
-        if (plantElement) {
-          plantElement.scrollIntoView({ behavior: 'smooth' });
+        var element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
         }
       }
     });
-  </script>
+  </script>  
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -48,7 +34,8 @@
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
               {% if notifications %}
                 {% for notification in notifications %}
-                  <a class="dropdown-item" href={{ url_for('plant.index', plant=notification['user_plant_id'])}}, data-page="{{ (loop.index0 // per_page) + 1 }}">
+                  {% set page_number = (notification.position // per_page) + 1 %}
+                  <a class="dropdown-item" href="{{ url_for('plant.index', page=page_number) }}#plant-{{ notification.user_plant_id }}">
                     {{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.
                   </a>
                 {% endfor %}

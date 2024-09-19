@@ -50,7 +50,6 @@ def get_plant_and_notifications():
     db = get_db()
     user_id = g.user['user_id']
 
-
     plant_cursor = db.execute(
         """SELECT p.*,
                   up.* 
@@ -61,7 +60,7 @@ def get_plant_and_notifications():
         (user_id,)
     )
     cols = [description[0] for description in plant_cursor.description]
-    plants= pd.DataFrame.from_records(data = plant_cursor.fetchall(), columns = cols)
+    plants = pd.DataFrame.from_records(data=plant_cursor.fetchall(), columns=cols)
 
     notifications = []
     daily_water_consumption_list = []
@@ -70,28 +69,33 @@ def get_plant_and_notifications():
     needs_watering_list = []
     if plants.shape[0] != 0:
 
-        for _,plant in plants.iterrows():
-            plant['daily_water_consumption'] = calculate_water_consumption(sun_exposure=plant['sun_exposure'],
-                                                                           pot_diameter=plant['pot_diameter'],
-                                                                           min_water=plant['min_water_consumption'],
-                                                                           max_water=plant['max_water_consumption'])
+        for idx, plant in plants.iterrows():
+            plant['daily_water_consumption'] = calculate_water_consumption(
+                sun_exposure=plant['sun_exposure'],
+                pot_diameter=plant['pot_diameter'],
+                min_water=plant['min_water_consumption'],
+                max_water=plant['max_water_consumption']
+            )
             daily_water_consumption_list.append(plant['daily_water_consumption'])
 
-            plant['next_watering_date'] = calculate_next_watering(watered_date=plant['last_watered'],
-                                                                  watered_amount=plant['watered_amount'],
-                                                                  daily_consumption=plant['daily_water_consumption'])
+            plant['next_watering_date'] = calculate_next_watering(
+                watered_date=plant['last_watered'],
+                watered_amount=plant['watered_amount'],
+                daily_consumption=plant['daily_water_consumption']
+            )
             next_watering_date_list.append(plant['next_watering_date'])
 
             if plant['next_watering_date']:
                 time_to_watering, needs_watering = check_if_watering_needed(plant['next_watering_date'])
-                plant['time_to_watering'] = time_to_watering,
+                plant['time_to_watering'] = time_to_watering
                 plant['needs_watering'] = needs_watering
                 if needs_watering:
                     overdue_days = time_to_watering if time_to_watering > 0 else 0
                     notifications.append({
                         'user_plant_id': plant['user_plant_id'],
                         'plant_name': plant['common_name'],
-                        'overdue_days': overdue_days
+                        'overdue_days': overdue_days,
+                        'position': idx  # Add position here
                     })
                 time_to_watering_list.append(time_to_watering)
                 needs_watering_list.append(needs_watering)
@@ -99,7 +103,7 @@ def get_plant_and_notifications():
         plants['daily_water_consumption'] = daily_water_consumption_list
         plants['next_watering_date'] = next_watering_date_list
         plants['time_to_watering'] = time_to_watering_list
-        plants['needs_watering'] = needs_watering_list            
+        plants['needs_watering'] = needs_watering_list
         return plants, notifications
 
     else:
@@ -137,7 +141,8 @@ def index():
         notifications=notifications, 
         notification_count=len(notifications), 
         page=page, 
-        total_pages=total_pages
+        total_pages=total_pages,
+        per_page=per_page
     )
 
 

@@ -1,63 +1,60 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
 import bleach
 
 from flask_app.auth import login_required
-from flask_app.db import get_db
+from flask_app.models import db, User, UserPlant
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
-
-
+# Helper function to fetch user and associated plant count
 def get_user(username):
-    user_id = g.user['user_id']
-    user = get_db().execute(
-        """ SELECT u.user_id, u.username, u.email, u.avatar, u.last_time_seen, u.user_description,
-                   COUNT(DISTINCT up.user_plant_id) as user_plant_count
-        FROM User as u
-        LEFT JOIN UserPlant as up ON u.user_id = up.user_id
-        WHERE u.username = ?
-        AND u.user_id = ?
-        """,
-        (username, user_id,)
-    ).fetchone()
+    user_id = g.user.user_id
+    user = db.session.query(User).filter_by(user_id=user_id, username=username).first()
 
     if user is None:
         abort(404, f"User with id {user_id} and username {username} doesn't exist.")
 
+    # Query to count the number of plants associated with the user
+    user_plant_count = db.session.query(UserPlant).filter_by(user_id=user.user_id).count()
+
+    # Adding the plant count to the user object (or you could pass this as separate context to the template)
+    user.user_plant_count = user_plant_count
+
     return user
 
+
+# Route to view user profile
 @bp.route('/<username>', methods=('GET', 'POST'))
 @login_required
 def user(username):
     user = get_user(username)
-
     return render_template('user/user.html', user=user)
 
 
+# Route to edit user profile
 @bp.route('/<username>/edit_profile', methods=('GET', 'POST'))
 @login_required
 def edit_profile(username):
     user = get_user(username)
 
     if request.method == 'POST':
-        username = request.form['username']
+        new_username = request.form['username']
         user_description = bleach.clean(request.form['user_description'], strip=True)
         error = None
+
+        # Add validation checks if needed (e.g., username uniqueness)
 
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            db.execute(
-                'UPDATE User SET username = ?, user_description = ? '
-                ' WHERE user_id = ?',
-                (username, user_description, user['user_id'])
-            )
-            db.commit()
+            # Update user information using SQLAlchemy ORM
+            user.username = new_username
+            user.user_description = user_description
+            db.session.commit()  # Commit the changes to the database
             flash('Your changes have been saved.')
-            return redirect(url_for('user.user', username=username))
+            return redirect(url_for('user.user', username=user.username))
 
     return render_template('user/edit_profile.html', user=user)

@@ -153,3 +153,5 @@ cython_debug/
 #.idea/
 
 demo/flask_app/static/images/
+
+**/dev.env

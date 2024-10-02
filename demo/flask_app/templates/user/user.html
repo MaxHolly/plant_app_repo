@@ -18,7 +18,7 @@
         {% if user.user_plant_count %}<li>Number of plants registered: {{ user.user_plant_count }}</li>{% endif %}
         {% if user.last_time_seen %}<li>Last seen on: {{ user.last_time_seen }}</li><br>{% endif %}
     </div>
-    <p><a href="{{ url_for('user.edit_profile', username=g.user['username']) }}" class="action btn btn-dark-green w-100">Edit your profile</a></p>
+    <p><a href="{{ url_for('user.edit_profile', username=g.user.username) }}" class="action btn btn-dark-green w-100">Edit your profile</a></p>
     </div>
   {% endif %}
 {% endblock %}

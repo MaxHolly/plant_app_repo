@@ -22,6 +22,9 @@ bleach = "^6.1.0"
 alembic = "^1.13.2"
 sqlalchemy = "^2.0.31"
 flask-jwt-extended = "^4.6.0"
+flask-migrate = "^4.0.7"
+mysqlclient = "^2.2.4"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

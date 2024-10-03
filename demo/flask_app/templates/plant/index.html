@@ -26,11 +26,16 @@
               {% else %}
                 <h1 class="h5">My {{ plant.common_name }}</h1>
               {% endif %}
-              {% if plant.image_path %}
-                <img src="{{ url_for('static', filename=plant.image_path) }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
-              {% else %}
-                <img src="{{ plant.image_location }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
-              {% endif %}
+              {% set plant_link %}
+              <a href="#" class="user_plant_popup" data-user-plant-id="{{ plant.user_plant_id }}" data-page="{{ page }}">
+                {% if plant.image_path %}
+                    <img src="{{ url_for('static', filename=plant.image_path) }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
+                {% else %}
+                    <img src="{{ plant.image_location }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
+                {% endif %}
+              </a>
+              {% endset %}
+              {{ plant_link }}              
               <div class="about">Botanical Name: {{ plant.botanical_name }}</div>
             </header>
           </div>
@@ -72,32 +77,6 @@
             {% endif %}
           </div>
         </div>
-        <header>
-          <div>
-            <h2 class="h6">General Plant Information</h2>
-            <table class="plant-table table table-striped">
-              <tr>
-                <td>
-                  Plant Type: {{ plant.plant_type }}<br>
-                  Water Needs: {{ plant.water_needs }}<br>
-                  Climate Zones: {{ plant.climate_zones }}<br>
-                  Light Needs: {{ plant.light_needs }}<br>
-                  Soil Type: {{ plant.soil_type }}<br>
-                  Maintenance: {{ plant.maintenance }}<br>
-                  Flower Color: {{ plant.flower_color }}
-                </td>
-                <td>
-                  Foliage Color: {{ plant.foliage_color }}<br>
-                  Perfume: {{ plant.perfume }}<br>
-                  Aromatic: {{ plant.aromatic }}<br>
-                  Edible: {{ plant.edible }}<br>
-                  Bore Water Tolerance: {{ plant.bore_water_tolerance }}<br>
-                  Frost Tolerance: {{ plant.frost_tolerance }}
-                </td>
-              </tr>
-            </table>
-          </div>
-        </header>
       </article>
       {% if not loop.last %}
         <hr class="mb-4">

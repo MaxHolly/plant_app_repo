@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}{% endblock %} - Waterwise</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Include only Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  
+  <!-- Include Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var hash = window.location.hash;
@@ -16,37 +23,84 @@
         }
       }
     });
+
+    function initialize_popovers() {
+      const popups = document.getElementsByClassName('user_plant_popup');
+      for (let i = 0; i < popups.length; i++) {
+          const popover = new bootstrap.Popover(popups[i], {
+              content: 'Loading...',
+              trigger: 'hover focus',
+              placement: 'right',
+              html: true,
+              sanitize: false,
+              delay: { show: 500, hide: 0 },
+              container: popups[i],
+          });
+  
+          popups[i].addEventListener('show.bs.popover', async (ev) => {
+            console.log('Popover is about to show for:', ev.target);
+              if (ev.target.popupLoaded) {
+                  return;
+              }
+  
+              const userPlantId = ev.target.getAttribute('data-user-plant-id');
+              const page = ev.target.getAttribute('data-page');
+              
+              if (!userPlantId || !page) {
+                  console.error('Missing userPlantId or page!');
+                  return;
+              }
+  
+              try {
+                  const response = await fetch(`/${userPlantId}/user_popup?page=${page}`);
+                  const data = await response.text();
+                  const popoverInstance = bootstrap.Popover.getInstance(ev.target);
+  
+                  if (popoverInstance && data) {
+                      ev.target.popupLoaded = true;
+                      popoverInstance.setContent({ '.popover-body': data });
+                      flask_moment_render_all();  // Re-render timestamps if needed
+                  }
+              } catch (error) {
+                  console.error('Error loading popover content:', error);
+              }
+          });
+      }
+  }
+  document.addEventListener('DOMContentLoaded', initialize_popovers);
+  
   </script>  
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <a class="navbar-brand" href="#">Waterwise</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ml-auto">
+      <ul class="navbar-nav ms-auto">
         {% if g.user %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               {{ g.user.username }}{% if notification_count > 0 %} <span class="badge badge-danger">{{ notification_count }}</span>{% endif %}
             </a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
               {% if notifications %}
                 {% for notification in notifications %}
                   {% set page_number = (notification.position // per_page) + 1 %}
-                  <a class="dropdown-item" href="{{ url_for('plant.index', page=page_number) }}#plant-{{ notification.user_plant_id }}">
-                    {{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.
-                  </a>
+                  <li>
+                    <a class="dropdown-item" href="{{ url_for('plant.index', page=page_number) }}#plant-{{ notification.user_plant_id }}">
+                      {{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.
+                    </a>
+                  </li>
                 {% endfor %}
               {% else %}
-                <a class="dropdown-item" href="#">No notifications</a>
+                <li><a class="dropdown-item" href="#">No notifications</a></li>
               {% endif %}
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Log Out</a>
-            </div>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Log Out</a></li>
+            </ul>
           </li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Log Out</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('user.user', username=g.user.username) }}">User Profile</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('plant.index') }}">My Plants</a></li>
         {% else %}
@@ -65,8 +119,6 @@
     {% endfor %}
     {% block content %}{% endblock %}
   </div>
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
 </body>
 </html>

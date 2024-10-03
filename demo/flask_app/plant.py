@@ -230,6 +230,8 @@ def update(user_plant_id):
     """Update a user's plant."""
     # Get the UserPlant object using SQLAlchemy ORM
     user_plant = UserPlant.query.get_or_404(user_plant_id)
+    plant = Plant.query.get_or_404(user_plant.plant_id)
+
 
     # Ensure the current user owns this plant
     if user_plant.user_id != g.user.user_id:
@@ -287,7 +289,7 @@ def update(user_plant_id):
     # GET request or form validation failed
     return render_template('plant/update.html', user_plant=user_plant)
 
-@bp.route('/<int:user_plant_id>/delete', methods=('POST',))
+@bp.route('/user_plant_id/delete', methods=('POST',))
 @login_required
 def delete(user_plant_id):
     """Delete a user's plant."""
@@ -303,3 +305,17 @@ def delete(user_plant_id):
     db.session.commit()
     flash('Plant deleted successfully.')
     return redirect(url_for('plant.index'))
+
+@bp.route('/<int:user_plant_id>/user_popup')
+@login_required
+def user_popup(user_plant_id):
+    """
+    Route for pop-up of showing general plant information when hovering over plant picture
+    """
+    page = request.args.get('page', 1, type=int)
+    
+    # Fetch the UserPlant and associated Plant
+    user_plant = UserPlant.query.get_or_404(user_plant_id)
+    plant = Plant.query.get_or_404(user_plant.plant_id)
+
+    return render_template('plant/user_plant_popup.html', user_plant=user_plant, plant=plant, page=page)

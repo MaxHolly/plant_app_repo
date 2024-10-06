@@ -1,16 +1,17 @@
 {% extends 'base.html' %}
 
+
 {% block header %}
-  <h1 class="mb-4">{% block title %}My Plants{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action btn btn-dark-green mb-4 w-100" href="{{ url_for('plant.add') }}">Add Plant</a>
-  {% endif %}
-  {% if notifications %}
+{% if notifications %}
     <div class="alert alert-warning" role="alert">
       {% for notification in notifications %}
         <p>{{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.</p>
       {% endfor %}
     </div>
+  {% endif %}
+  <h1 class="mb-4">{% block title %}My Plants{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action btn btn-dark-green mb-4 w-100" href="{{ url_for('plant.add') }}">Add Plant</a>
   {% endif %}
 {% endblock %}
 
@@ -27,7 +28,7 @@
                 <h1 class="h5">My {{ plant.common_name }}</h1>
               {% endif %}
               {% set plant_link %}
-              <a href="#" class="user_plant_popup" data-user-plant-id="{{ plant.user_plant_id }}" data-page="{{ page }}">
+              <a href="#" class="user_plant_popup" data-bs-custom-class="custom-popover" data-user-plant-id="{{ plant.user_plant_id }}" data-page="{{ page }}">
                 {% if plant.image_path %}
                     <img src="{{ url_for('static', filename=plant.image_path) }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
                 {% else %}

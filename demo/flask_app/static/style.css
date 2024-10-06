@@ -169,3 +169,13 @@ input[type=submit] {
 .btn-dark-green:hover {
     background-color: #22871f; /* Darker green on hover */
 }
+.custom-popover {
+    --bs-popover-max-width: 500px;
+    --bs-popover-border-color: rgb(135, 140, 135);
+    --bs-popover-header-bg: var(--bd-green-bg);
+    --bs-popover-header-color: var(--bs-green);
+    --bs-popover-bg: #258622;
+    --bs-popover-body-color: white;
+    --bs-popover-body-padding-x: .5rem;
+    --bs-popover-body-padding-y: .1rem;
+  }

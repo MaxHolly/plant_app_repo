@@ -179,3 +179,41 @@ input[type=submit] {
     --bs-popover-body-padding-x: .5rem;
     --bs-popover-body-padding-y: .1rem;
   }
+.progress {
+    height: 25px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    line-height: 20px;
+    font-size: 0.9rem;
+    position: relative;
+    white-space: nowrap;
+}
+
+.text-overdue {
+    position: absolute;
+    left: 10px;
+    color: black;
+    white-space: nowrap;
+}
+
+.overflow-visible {
+    overflow: visible !important;
+}
+
+.bg-success {
+    background-color: #28a745 !important; /* Ensure green for success */
+}
+
+.bg-warning {
+    background-color: #ffc107 !important; /* Ensure orange for warning */
+}
+
+.bg-danger {
+    background-color: #dc3545 !important; /* Ensure red for danger */
+}
+

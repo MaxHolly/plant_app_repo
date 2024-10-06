@@ -48,24 +48,36 @@
                 Sun Exposure: {{ plant.sun_exposure }}<br>
                 Pot Diameter (cm): {{ plant.pot_diameter }}<br>
                 {% if plant.plant_position %} Plant Position: {{ plant.plant_position }}<br>{% endif %}
-                Last Watered: {{ plant.last_watered }}<br>
+                Last Watered: {{ plant.last_watered.strftime('%Y-%m-%d') }}<br>
                 Amount Watered (litres): {{ plant.watered_amount }}<br>
                 {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ "%.4f"|format(plant.daily_water_consumption) }}<br>{% endif %}
                 {% if plant.next_watering_date %}Next Watering Date: {{ plant.next_watering_date }}{% endif %}
 
-                {% if plant.needs_watering %}
-                  <div class="alert alert-warning mt-2" role="alert">
-                    This plant needs to be watered!
-                    {% if plant.time_to_watering > 0 %}
-                      Overdue by {{ plant.time_to_watering }} days.
-                    {% else %}
-                      Today.
-                    {% endif %}
+                {% if plant.next_watering_date %}
+                  {% if plant.time_to_watering < 0 %}
+                  <!-- Future watering (Green bar) -->
+                  {% set progress_value = 100 if plant.time_to_watering < -7 else 50 + ((-plant.time_to_watering - 1) * (50 / 7)) %}
+                  <div class="progress">
+                      <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
+                          Water again in {{ -plant.time_to_watering }} days.
+                      </div>
                   </div>
-                {% else %}
-                  <div class="alert alert-info mt-2" role="alert">
-                    Water again in {{ -plant.time_to_watering }} days.
-                  </div>
+                  {% elif plant.time_to_watering == 0 %}
+                      <!-- Watering today (Orange bar) -->
+                      <div class="progress">
+                          <div class="progress-bar bg-warning" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                              Watering is due today!
+                          </div>
+                      </div>
+                  {% else %}
+                      <!-- Overdue watering (Red bar) -->
+                      {% set progress_value = 50 - ((plant.time_to_watering) * (50 / 7)) %}
+                      <div class="progress">
+                          <div class="progress-bar bg-danger overflow-visible" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
+                              <span class="text-overdue">Overdue by {{ plant.time_to_watering }} days.</span>
+                          </div>
+                      </div>
+                  {% endif %}
                 {% endif %}
               </p>
             </div>

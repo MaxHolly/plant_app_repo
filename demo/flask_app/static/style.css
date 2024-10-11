@@ -66,6 +66,7 @@ nav ul  {
 }
 nav ul li a,
 nav ul li span,
+
 header .action {
     display: block;
     padding: 0.5rem;
@@ -137,7 +138,8 @@ header .action {
     resize: vertical;
 }
 .plant-image {
-    width: 200px;
+    width: 100%;
+    max-width: 400px; /* Increased max width */
     height: auto; /* Maintain aspect ratio */
 }
 .plant-table {
@@ -178,7 +180,7 @@ input[type=submit] {
     --bs-popover-body-color: white;
     --bs-popover-body-padding-x: .5rem;
     --bs-popover-body-padding-y: .1rem;
-  }
+}
 .progress {
     height: 25px;
     border-radius: 10px;
@@ -217,3 +219,27 @@ input[type=submit] {
     background-color: #dc3545 !important; /* Ensure red for danger */
 }
 
+/* Added styles for severely overdue status bar */
+.progress.overdue-severe {
+    border: 2px solid red;
+}
+
+.progress.overdue-severe .progress-bar {
+    color: red;
+}
+
+.progress.overdue-severe .text-overdue {
+    color: red;
+}
+
+/* Existing styles for dividers */
+hr {
+    border: none;
+    border-top: 1px solid lightgray;
+}
+
+/* Optional: Custom class for dividers */
+.hr-divider {
+    border: none;
+    border-top: 1px solid lightgray;
+}

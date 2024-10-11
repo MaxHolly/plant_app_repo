@@ -1,88 +1,110 @@
 {% extends 'base.html' %}
 
-
 {% block header %}
-{% if notifications %}
-    <div class="alert alert-warning" role="alert">
-      {% for notification in notifications %}
-        <p>{{ notification.plant_name }} needs watering{% if notification.overdue_days > 0 %} ({{ notification.overdue_days }} days overdue){% endif %}.</p>
-      {% endfor %}
-    </div>
-  {% endif %}
-  <h1 class="mb-4">{% block title %}My Plants{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action btn btn-dark-green mb-4 w-100" href="{{ url_for('plant.add') }}">Add Plant</a>
-  {% endif %}
+  <div class="text-center mb-4">
+      <h1 class="mb-0">{% block title %}My Plants{% endblock %}</h1>
+  </div>
+  <!-- Add a custom class to the divider -->
+<hr class="divider mb-4">
 {% endblock %}
 
 {% block content %}
   {% if plants %}
     {% for plant in plants %}
       <article id="plant-{{ plant.user_plant_id }}" class="plant mb-4">
-        <div class="row">
-          <div class="col-md-4">
-            <header class="mb-3">
-              {% if plant.plant_nickname %}
-                <h1 class="h5">My {{ plant.plant_nickname }} ({{ plant.common_name }})</h1>
-              {% else %}
-                <h1 class="h5">My {{ plant.common_name }}</h1>
-              {% endif %}
-              {% set plant_link %}
-              <a href="#" class="user_plant_popup" data-bs-custom-class="custom-popover" data-user-plant-id="{{ plant.user_plant_id }}" data-page="{{ page }}">
-                {% if plant.image_path %}
-                    <img src="{{ url_for('static', filename=plant.image_path) }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
-                {% else %}
-                    <img src="{{ plant.image_location }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
-                {% endif %}
-              </a>
-              {% endset %}
-              {{ plant_link }}              
-              <div class="about">Botanical Name: {{ plant.botanical_name }}</div>
-            </header>
-          </div>
-          <div class="col-md-8 d-flex align-items-center">
-            <div class="w-100 p-3" style="background-color: #f8f9fa; border-radius: 5px;">
-              <h2 class="h6">Personal Plant Information</h2>
-              <p class="personal_plant_information">
-                Size (cm): {{ plant.size }}<br>
-                Sun Exposure: {{ plant.sun_exposure }}<br>
-                Pot Diameter (cm): {{ plant.pot_diameter }}<br>
-                {% if plant.plant_position %} Plant Position: {{ plant.plant_position }}<br>{% endif %}
-                Last Watered: {{ plant.last_watered.strftime('%Y-%m-%d') }}<br>
-                Amount Watered (litres): {{ plant.watered_amount }}<br>
-                {% if plant.daily_water_consumption %}Daily Water Consumption (litres): {{ "%.4f"|format(plant.daily_water_consumption) }}<br>{% endif %}
-                {% if plant.next_watering_date %}Next Watering Date: {{ plant.next_watering_date }}{% endif %}
+        <!-- Plant Header -->
+        <header class="mb-3 text-center">
+          {% if plant.plant_nickname %}
+            <h1 class="h5">My {{ plant.plant_nickname }} ({{ plant.common_name }})</h1>
+          {% else %}
+            <h1 class="h5">My {{ plant.common_name }}</h1>
+          {% endif %}
+          <div class="about">Botanical Name: {{ plant.botanical_name }}</div>
+        </header>
 
-                {% if plant.next_watering_date %}
-                  {% if plant.time_to_watering < 0 %}
-                  <!-- Future watering (Green bar) -->
-                  {% set progress_value = 100 if plant.time_to_watering < -7 else 50 + ((-plant.time_to_watering - 1) * (50 / 7)) %}
-                  <div class="progress">
-                      <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
-                          Water again in {{ -plant.time_to_watering }} days.
-                      </div>
+        <!-- Plant Status -->
+        <div class="text-center mb-3">
+          <h2 class="h6">Plant Status</h2>
+          {% if plant.next_watering_date %}
+            {% if plant.time_to_watering < 0 %}
+              <!-- Future watering (Green bar) -->
+              {% set progress_value = 100 if plant.time_to_watering < -7 else 50 + ((-plant.time_to_watering - 1) * (50 / 7)) %}
+              <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
+                  Water again in {{ -plant.time_to_watering }} days.
+                </div>
+              </div>
+            {% elif plant.time_to_watering == 0 %}
+              <!-- Watering today (Orange bar) -->
+              <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                  Watering is due today!
+                </div>
+              </div>
+            {% else %}
+              <!-- Overdue watering (Red bar) -->
+              {% set progress_value = 50 - ((plant.time_to_watering) * (50 / 7)) %}
+              {% if plant.time_to_watering >= 7 %}
+                <!-- Severely Overdue (>=7 days) -->
+                <div class="progress overdue-severe" style="height: 20px;">
+                  <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated overflow-visible" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
+                    <span class="text-overdue">Overdue by {{ plant.time_to_watering }} days.</span>
                   </div>
-                  {% elif plant.time_to_watering == 0 %}
-                      <!-- Watering today (Orange bar) -->
-                      <div class="progress">
-                          <div class="progress-bar bg-warning" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
-                              Watering is due today!
-                          </div>
-                      </div>
-                  {% else %}
-                      <!-- Overdue watering (Red bar) -->
-                      {% set progress_value = 50 - ((plant.time_to_watering) * (50 / 7)) %}
-                      <div class="progress">
-                          <div class="progress-bar bg-danger overflow-visible" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
-                              <span class="text-overdue">Overdue by {{ plant.time_to_watering }} days.</span>
-                          </div>
-                      </div>
+                </div>
+              {% else %}
+                <!-- Overdue watering (Red bar) -->
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated overflow-visible" role="progressbar" style="width: {{ progress_value }}%;" aria-valuenow="{{ progress_value }}" aria-valuemin="0" aria-valuemax="100">
+                    <span class="text-overdue">Overdue by {{ plant.time_to_watering }} days.</span>
+                  </div>
+                </div>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Plant Image Centered with Popover -->
+        <div class="text-center mb-3">
+          {% set plant_link %}
+          <a href="#" class="user_plant_popup" data-bs-custom-class="custom-popover" data-user-plant-id="{{ plant.user_plant_id }}" data-page="{{ page }}">
+            {% if plant.image_path %}
+              <img src="{{ url_for('static', filename=plant.image_path) }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
+            {% else %}
+              <img src="{{ plant.image_location }}" alt="{{ plant.common_name }} Image" class="plant-image mb-2 img-fluid">
+            {% endif %}
+          </a>
+          {% endset %}
+          {{ plant_link }}
+        </div>
+
+        <!-- Personal Plant Information -->
+        <div class="mb-3">
+          <div class="container bg-light p-3 rounded">
+            <h2 class="h6 text-center">Personal Plant Information</h2>
+            <div class="row">
+              <div class="col-md-6">
+                <p>
+                  Size (cm): {{ plant.size }}<br>
+                  Sun Exposure: {{ plant.sun_exposure }}<br>
+                  Pot Diameter (cm): {{ plant.pot_diameter }}<br>
+                  {% if plant.plant_position %}Plant Position: {{ plant.plant_position }}<br>{% endif %}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <p>
+                  Last Watered: {{ plant.last_watered.strftime('%Y-%m-%d') }}<br>
+                  Amount Watered (litres): {{ plant.watered_amount }}<br>
+                  {% if plant.daily_water_consumption %}
+                    Daily Water Consumption (litres): {{ "%.4f"|format(plant.daily_water_consumption) }}<br>
                   {% endif %}
-                {% endif %}
-              </p>
+                  {% if plant.next_watering_date %}Next Watering Date: {{ plant.next_watering_date }}{% endif %}
+                </p>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Edit Button -->
         <div class="row mt-3">
           <div class="col-12">
             {% if g.user %}
@@ -91,12 +113,13 @@
           </div>
         </div>
       </article>
+
       {% if not loop.last %}
         <hr class="mb-4">
       {% endif %}
     {% endfor %}
 
-    <!-- Pagination controls -->
+    <!-- Pagination Controls -->
     <nav aria-label="Page navigation" class="d-flex justify-content-center">
       <ul class="pagination">
         {% if page > 1 %}
@@ -104,13 +127,13 @@
         {% else %}
           <li class="page-item disabled"><span class="page-link">Previous</span></li>
         {% endif %}
-        
+
         {% for p in range(1, total_pages + 1) %}
           <li class="page-item {% if p == page %}active{% endif %}">
             <a class="page-link" href="{{ url_for('plant.index', page=p) }}">{{ p }}</a>
           </li>
         {% endfor %}
-        
+
         {% if page < total_pages %}
           <li class="page-item"><a class="page-link" href="{{ url_for('plant.index', page=page+1) }}">Next</a></li>
         {% else %}

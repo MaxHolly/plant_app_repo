@@ -1,7 +1,8 @@
-# flask_app/__init__.py
 import os
+import logging
 from flask import Flask, g
 from flask_sqlalchemy import SQLAlchemy
+from logging.handlers import RotatingFileHandler
 from flask_migrate import Migrate
 from .models import db
 from .plant import get_plant_and_notifications
@@ -26,11 +27,28 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    # implement logging
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+            file_handler = RotatingFileHandler('logs/plant_app.log', maxBytes=10240,
+                                               backupCount=10)
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+            file_handler.setLevel(logging.INFO)
+            app.logger.addHandler(file_handler)
+
+            app.logger.setLevel(logging.INFO)
+            app.logger.info('Microblog startup')
+
     # Initialize extensions
     db.init_app(app)
     migrate = Migrate(app, db)
 
     # Register blueprints
+    from . import errors
+    app.register_blueprint(errors.bp)
+
     from . import auth
     app.register_blueprint(auth.bp)
 
